@@ -101,6 +101,14 @@ const tourSchema = new mongoose.Schema(
         day: Number,
       },
     ],
+    // guides: Array, // use if we want to embed (+ pre save middleware)
+    guides: [
+      // use if we want to reference
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'User',
+      },
+    ],
   },
   {
     toJSON: { virtuals: true },
@@ -118,11 +126,28 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
+// // Drawbacks to embed users into tours is that we need to update user documents
+// // inside a tour document each time an user property changes
+// tourSchema.pre('save', async function (next) {
+//   const guidesPromises = this.guides.map(async (id) => await User.findById(id));
+//   this.guides = await Promise.all(guidesPromises);
+//   next();
+// });
+
 // Query middleware
 tourSchema.pre(/^find/, function (next) {
   // for all findXXX methods
   this.find({ secretTour: { $ne: true } });
   this.start = Date.now();
+  next();
+});
+
+// Populate `guides` user fields
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangedAt',
+  });
   next();
 });
 
