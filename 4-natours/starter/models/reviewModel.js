@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Tour = require('./tourModel');
 
 const reviewSchema = new mongoose.Schema(
   {
@@ -48,6 +49,54 @@ reviewSchema.pre(/^find/, function (next) {
     select: 'name photo',
   });
   next();
+});
+
+reviewSchema.statics.calculateAverageRatings = async function (tourId) {
+  // this points to the model
+  const stats = await this.aggregate([
+    {
+      $match: { tour: tourId },
+    },
+    {
+      $group: {
+        _id: '$tour',
+        nRating: { $sum: 1 },
+        avgRating: { $avg: '$rating' },
+      },
+    },
+  ]);
+  if (stats.length > 0) {
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: stats[0].nRating,
+      ratingsAverage: stats[0].avgRating,
+    });
+  } else {
+    await Tour.findByIdAndUpdate(tourId, {
+      ratingsQuantity: 0,
+      ratingsAverage: 4.5,
+    });
+  }
+};
+
+reviewSchema.post('save', async function () {
+  // this points to the document being saved
+  // Review is not yet defined, so we use this.constructor instead
+  // await Review.calculateAverageRatings(this.tour);
+  await this.constructor.calculateAverageRatings(this.tour);
+});
+
+// findByIdAndUpdate
+// findByIdAndDelete
+reviewSchema.pre(/^findOneAnd/, async function (next) {
+  // this poinst to the current query
+  this.r = await this.findOne(); // trigger the query to get the document from the database
+  // we save r to the query to access it in the post middleware
+  next();
+});
+
+reviewSchema.post(/^findOneAnd/, async function (next) {
+  //await this.findOne() does not work here, the query has already executed
+  await this.r.constructor.calculateAverageRatings(this.r.tour);
 });
 
 const Review = mongoose.model('Review', reviewSchema);
