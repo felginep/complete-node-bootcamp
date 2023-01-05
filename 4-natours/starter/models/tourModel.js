@@ -120,6 +120,7 @@ const tourSchema = new mongoose.Schema(
 // tourSchema.index({ price: 1 }); // 1 for ascending order
 tourSchema.index({ price: 1, ratingsAverage: -1 }); // 1 for ascending order
 tourSchema.index({ slug: 1 });
+tourSchema.index({ startLocation: '2dsphere' }); // tell mongodb that startLocation is a point on the earth
 
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7; // regular function instead of arrow function to access this
@@ -169,10 +170,10 @@ tourSchema.post(/^find/, function (docs, next) {
 });
 
 // Aggregation middleware
-tourSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  next();
-});
+// tourSchema.pre('aggregate', function (next) {
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   next();
+// });
 
 const Tour = mongoose.model('Tour', tourSchema);
 
