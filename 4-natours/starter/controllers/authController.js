@@ -22,7 +22,7 @@ const createSendToken = (user, statusCode, res) => {
   if (process.env.NODENV === 'production') {
     cookieOptions.secure = true; // for https
   }
-  res.cookie('jtw', token, cookieOptions);
+  res.cookie('jwt', token, cookieOptions);
 
   user.password = undefined; // remove password for object sent to client
 
@@ -142,6 +142,8 @@ const protect = catchAsync(async (req, res, next) => {
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   }
   if (!token) {
     return next(
@@ -170,6 +172,42 @@ const protect = catchAsync(async (req, res, next) => {
   next();
 });
 
+// Only for html pages
+const logout = (req, res) => {
+  res.cookie('jwt', 'loggedout', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+  res.status(200).json({ status: 'success' });
+};
+
+// Only for rendered pages, no errors!
+const isLoggedIn = async (req, res, next) => {
+  // Getting token and check if it's there
+  if (req.cookies.jwt) {
+    try {
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET
+      );
+
+      const freshUser = await User.findById(decoded.id);
+      if (!freshUser) {
+        return next();
+      }
+
+      if (freshUser.changedPasswordAfter(decoded.iat)) {
+        return next();
+      }
+
+      res.locals.user = freshUser;
+    } catch (err) {
+      return next();
+    }
+  }
+  next();
+};
+
 const restrictTo =
   (...roles) =>
   (req, res, next) => {
@@ -189,5 +227,7 @@ module.exports = {
   resetPassword,
   updatePassword,
   protect,
+  isLoggedIn,
+  logout,
   restrictTo,
 };

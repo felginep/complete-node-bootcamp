@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const xss = require('xss-clean');
 const hpp = require('hpp');
+const cookieParser = require('cookie-parser');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
@@ -56,6 +57,9 @@ app.use(
     limit: '10kb',
   })
 );
+
+// Cookie parser
+app.use(cookieParser());
 
 // Sanitize data agains NoSQL query injection
 app.use(mongoSanitize());
