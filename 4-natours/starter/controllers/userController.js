@@ -1,19 +1,21 @@
 const multer = require('multer');
+const sharp = require('sharp');
 const User = require('../models/userModel');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 const filterObj = require('../utils/filterObj');
 const factory = require('./handlerFactory');
 
-const multerStorage = multer.diskStorage({
-  destination: (req, file, callback) => {
-    callback(null, 'public/img/users');
-  },
-  filename: (req, file, callback) => {
-    const extension = file.mimetype.split('/')[1];
-    callback(null, `user-${req.user.id}-${Date.now()}.${extension}`);
-  },
-});
+// const multerStorage = multer.diskStorage({
+//   destination: (req, file, callback) => {
+//     callback(null, 'public/img/users');
+//   },
+//   filename: (req, file, callback) => {
+//     const extension = file.mimetype.split('/')[1];
+//     callback(null, `user-${req.user.id}-${Date.now()}.${extension}`);
+//   },
+// });
+const multerStorage = multer.memoryStorage();
 const multerFilter = (req, file, callback) => {
   if (file.mimetype.startsWith('image/')) {
     callback(null, true);
@@ -30,6 +32,23 @@ const upload = multer({
 });
 
 const uploadUserPhoto = upload.single('photo');
+
+const resizeUserPhoto = (req, res, next) => {
+  if (!req.file) {
+    return next();
+  }
+
+  // filename is not defined for buffers (memory storage)
+  req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
+
+  sharp(req.file.buffer)
+    .resize(500, 500)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`./public/img/users/${req.file.filename}`);
+
+  next();
+};
 
 const updateMe = catchAsync(async (req, res, next) => {
   // Create error if user tries to update the password
@@ -88,6 +107,7 @@ module.exports = {
   updateUser,
   deleteUser,
   uploadUserPhoto,
+  resizeUserPhoto,
   updateMe,
   deleteMe,
   getMe,
