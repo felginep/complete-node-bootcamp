@@ -33,7 +33,7 @@ const upload = multer({
 
 const uploadUserPhoto = upload.single('photo');
 
-const resizeUserPhoto = (req, res, next) => {
+const resizeUserPhoto = catchAsync(async (req, res, next) => {
   if (!req.file) {
     return next();
   }
@@ -41,14 +41,14 @@ const resizeUserPhoto = (req, res, next) => {
   // filename is not defined for buffers (memory storage)
   req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
 
-  sharp(req.file.buffer)
+  await sharp(req.file.buffer)
     .resize(500, 500)
     .toFormat('jpeg')
     .jpeg({ quality: 90 })
     .toFile(`./public/img/users/${req.file.filename}`);
 
   next();
-};
+});
 
 const updateMe = catchAsync(async (req, res, next) => {
   // Create error if user tries to update the password
