@@ -8,6 +8,8 @@ const xss = require('xss-clean');
 const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 const compression = require('compression');
+const cors = require('cors');
+
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
@@ -22,6 +24,10 @@ app.enable('trust proxy'); // trust proxy with heroku
 
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
+
+// Implement CORS
+app.use(cors()); // Set Access-Control-Allow-Origin header to *
+app.options('*', cors()); // HTTP method OPTION, because for non GET/POST requests, browser will first send an OPTION request to test for validity
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
