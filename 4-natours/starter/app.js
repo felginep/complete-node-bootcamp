@@ -18,6 +18,8 @@ const globalErrorHandler = require('./controllers/errorController');
 
 const app = express();
 
+app.enable('trust proxy'); // trust proxy with heroku
+
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
 
