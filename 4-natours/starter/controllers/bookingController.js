@@ -24,7 +24,9 @@ const getCheckoutSession = catchAsync(async (req, res, next) => {
             name: `${tour.name} Tour`,
             description: tour.summary,
             images: [
-              'https://thumbs.dreamstime.com/b/hiking-forest-man-morning-mist-travel-concept-45457025.jpg',
+              `${req.protocol}://${req.get('host')}/img/tours/${
+                tour.imageCover
+              }`,
             ],
           },
           unit_amount: tour.price * 100, // in cents
