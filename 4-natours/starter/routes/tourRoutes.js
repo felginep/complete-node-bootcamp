@@ -6,8 +6,16 @@ const bookingRouter = require('./bookingRoutes');
 
 const router = express.Router();
 
-router.use('/:tourId/reviews', reviewRouter);
-router.use('/:tourId/bookings', bookingRouter);
+router.use(
+  '/:tourId/reviews',
+  tourController.injectTourIdIfNeeded,
+  reviewRouter
+);
+router.use(
+  '/:tourId/bookings',
+  tourController.injectTourIdIfNeeded,
+  bookingRouter
+);
 
 router
   .route('/top-5-cheap')

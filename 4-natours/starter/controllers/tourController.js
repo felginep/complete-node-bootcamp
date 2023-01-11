@@ -210,6 +210,14 @@ const getDistances = catchAsync(async (req, res, next) => {
   });
 });
 
+// To allow for nested GET reviews / bookings
+const injectTourIdIfNeeded = (req, res, next) => {
+  if (req.params.tourId && !req.query.tour) {
+    req.query.tour = req.params.tourId;
+  }
+  next();
+};
+
 module.exports = {
   uploadTourImages,
   resizeTourImages,
@@ -223,4 +231,5 @@ module.exports = {
   getMonthlyPlan,
   getToursWithin,
   getDistances,
+  injectTourIdIfNeeded,
 };

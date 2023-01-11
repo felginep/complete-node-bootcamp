@@ -94,6 +94,14 @@ const getMe = (req, res, next) => {
   next();
 };
 
+// To allow for nested GET bookings
+const injectUserIdIfNeeded = (req, res, next) => {
+  if (req.params.userId && !req.query.user) {
+    req.query.user = req.params.userId;
+  }
+  next();
+};
+
 const getAllUsers = factory.getAll(User);
 const getUser = factory.getOne(User);
 const createUser = factory.createOne(User);
@@ -111,4 +119,5 @@ module.exports = {
   updateMe,
   deleteMe,
   getMe,
+  injectUserIdIfNeeded,
 };

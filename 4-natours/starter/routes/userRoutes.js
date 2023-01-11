@@ -27,7 +27,11 @@ router.get('/me', userController.getMe, userController.getUser);
 
 router.use(authController.restrictTo('admin'));
 
-router.use('/:userId/bookings', bookingRouter);
+router.use(
+  '/:userId/bookings',
+  userController.injectUserIdIfNeeded,
+  bookingRouter
+);
 
 router
   .route('/')

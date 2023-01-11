@@ -56,16 +56,7 @@ const getOne = (Model, populateOptions) =>
 
 const getAll = (Model) =>
   catchAsync(async (req, res, next) => {
-    // HACK: To allow for nested GET reviews / bookings on tour / user
-    let filter = {};
-    if (req.params.tourId) {
-      filter = { tour: req.params.tourId };
-    }
-    if (req.params.userId) {
-      filter = { user: req.params.userId };
-    }
-
-    const features = new APIFeatures(Model.find(filter), req.query)
+    const features = new APIFeatures(Model.find(), req.query)
       .filter()
       .sort()
       .limitFields()
