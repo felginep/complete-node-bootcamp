@@ -1,6 +1,7 @@
 const express = require('express');
 const userController = require('../controllers/userController');
 const authController = require('../controllers/authController');
+const bookingRouter = require('./bookingRoutes');
 
 const router = express.Router();
 
@@ -25,6 +26,8 @@ router.delete('/deleteMe', userController.deleteMe);
 router.get('/me', userController.getMe, userController.getUser);
 
 router.use(authController.restrictTo('admin'));
+
+router.use('/:userId/bookings', bookingRouter);
 
 router
   .route('/')
